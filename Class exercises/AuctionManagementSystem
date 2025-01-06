@@ -1,0 +1,208 @@
+import java.util.*;
+import java.util.stream.*;
+
+class Auction {
+    private int auctionId;
+    private String itemName;
+    private double currentBid;
+    private Date endTime;
+    private String category;
+
+    public Auction(int auctionId, String itemName, double currentBid, Date endTime, String category) {
+        this.auctionId = auctionId;
+        this.itemName = itemName;
+        this.currentBid = currentBid;
+        this.endTime = endTime;
+        this.category = category;
+    }
+
+    public int getAuctionId() {
+        return auctionId;
+    }
+
+    public String getItemName() {
+        return itemName;
+    }
+
+    public double getCurrentBid() {
+        return currentBid;
+    }
+
+    public Date getEndTime() {
+        return endTime;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    @Override
+    public String toString() {
+        return "Auction{" +
+                "auctionId=" + auctionId +
+                ", itemName='" + itemName + '\'' +
+                ", currentBid=" + currentBid +
+                ", endTime=" + endTime +
+                ", category='" + category + '\'' +
+                '}';
+    }
+}
+
+public class AuctionManagementSystem {
+    private static List<Auction> auctions = new ArrayList<>();
+    private static Set<Integer> auctionIds = new HashSet<>();
+    private static Scanner scanner = new Scanner(System.in);
+
+    public static void main(String[] args) {
+        while (true) {
+            displayMenu();
+            int choice = getValidatedInteger("Enter your choice: ");
+            switch (choice) {
+                case 1 -> addAuction();
+                case 2 -> viewAuctions();
+                case 3 -> filterEndingSoon();
+                case 4 -> sortAuctionsByBid();
+                case 5 -> filterAuctionsByCategory();
+                case 6 -> System.exit(0);
+                default -> System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private static void displayMenu() {
+        System.out.println("\n*** Auction Management System ***");
+        System.out.println("1. Add New Auction");
+        System.out.println("2. View All Auctions");
+        System.out.println("3. Filter Auctions Ending Soon");
+        System.out.println("4. Sort Auctions by Current Bid");
+        System.out.println("5. Filter Auctions by Category");
+        System.out.println("6. Exit");
+    }
+
+    private static void addAuction() {
+        System.out.println("\n--- Add New Auction ---");
+
+        int id = getValidatedUniqueId("Enter Auction ID: ");
+        String itemName = getValidatedString("Enter Item Name: ");
+        double bid = getValidatedDouble("Enter Starting Bid: ");
+        Date endTime = getValidatedDate("Enter Auction End Time (yyyy-MM-dd HH:mm): ");
+        String category = getValidatedString("Enter Category: ");
+
+        Auction auction = new Auction(id, itemName, bid, endTime, category);
+        auctions.add(auction);
+        auctionIds.add(id);
+
+        System.out.println("Auction added successfully!");
+    }
+
+    private static void viewAuctions() {
+        System.out.println("\n--- View All Auctions ---");
+        if (auctions.isEmpty()) {
+            System.out.println("No auctions available.");
+            return;
+        }
+        auctions.forEach(System.out::println);
+    }
+
+    private static void filterEndingSoon() {
+        System.out.println("\n--- Filter Auctions Ending Soon ---");
+        if (auctions.isEmpty()) {
+            System.out.println("No auctions available.");
+            return;
+        }
+        List<Auction> endingSoon = auctions.stream()
+                .filter(auction -> auction.getEndTime().before(new Date(System.currentTimeMillis() + 3600000)))
+                .collect(Collectors.toList());
+        if (endingSoon.isEmpty()) {
+            System.out.println("No auctions ending within the next hour.");
+        } else {
+            endingSoon.forEach(System.out::println);
+        }
+    }
+
+    private static void sortAuctionsByBid() {
+        System.out.println("\n--- Sort Auctions by Current Bid ---");
+        if (auctions.isEmpty()) {
+            System.out.println("No auctions available.");
+            return;
+        }
+        List<Auction> sorted = auctions.stream()
+                .sorted(Comparator.comparingDouble(Auction::getCurrentBid))
+                .collect(Collectors.toList());
+        sorted.forEach(System.out::println);
+    }
+
+    private static void filterAuctionsByCategory() {
+        System.out.println("\n--- Filter Auctions by Category ---");
+        if (auctions.isEmpty()) {
+            System.out.println("No auctions available.");
+            return;
+        }
+        String category = getValidatedString("Enter category to filter: ");
+        List<Auction> filtered = auctions.stream()
+                .filter(auction -> auction.getCategory().equalsIgnoreCase(category))
+                .collect(Collectors.toList());
+        if (filtered.isEmpty()) {
+            System.out.println("No auctions found in category: " + category);
+        } else {
+            filtered.forEach(System.out::println);
+        }
+    }
+
+    private static int getValidatedInteger(String prompt) {
+        while (true) {
+            try {
+                System.out.print(prompt);
+                return Integer.parseInt(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a numeric value.");
+            }
+        }
+    }
+
+    private static int getValidatedUniqueId(String prompt) {
+        while (true) {
+            int id = getValidatedInteger(prompt);
+            if (auctionIds.contains(id)) {
+                System.out.println("Auction ID already exists. Please enter a unique ID.");
+            } else {
+                return id;
+            }
+        }
+    }
+
+    private static double getValidatedDouble(String prompt) {
+        while (true) {
+            try {
+                System.out.print(prompt);
+                return Double.parseDouble(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a numeric value.");
+            }
+        }
+    }
+
+    private static String getValidatedString(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String input = scanner.nextLine().trim();
+            if (input.isEmpty()) {
+                System.out.println("Input cannot be empty. Please try again.");
+            } else {
+                return input;
+            }
+        }
+    }
+
+    private static Date getValidatedDate(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            try {
+                String input = scanner.nextLine();
+                return new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm").parse(input);
+            } catch (Exception e) {
+                System.out.println("Invalid date format. Please use 'yyyy-MM-dd HH:mm'.");
+            }
+        }
+    }
+}

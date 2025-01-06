@@ -1,0 +1,130 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
+
+class Feedback {
+    private String userName;
+    private String movieName;
+    private int rating;
+    private String comments;
+
+    public Feedback(String userName, String movieName, int rating, String comments) {
+        this.userName = userName;
+        this.movieName = movieName;
+        this.rating = rating;
+        this.comments = comments;
+    }
+
+    public int getRating() {
+        return rating;
+    }
+
+    @Override
+    public String toString() {
+        return "User: " + userName + ", Movie: " + movieName + ", Rating: " + rating + ", Comments: " + comments;
+    }
+}
+
+public class FeedbackApp {
+    private List<Feedback> feedbackList = new ArrayList<>();
+
+    public void displayUI() {
+        JFrame frame = new JFrame("Feedback App");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(400, 400);
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(7, 2));
+
+        JLabel userLabel = new JLabel("User Name:");
+        JTextField userField = new JTextField();
+        JLabel movieLabel = new JLabel("Movie Name:");
+        JTextField movieField = new JTextField();
+        JLabel ratingLabel = new JLabel("Rating (1-5):");
+        JTextField ratingField = new JTextField();
+        JLabel commentsLabel = new JLabel("Comments:");
+        JTextField commentsField = new JTextField();
+
+        JButton submitButton = new JButton("Submit Feedback");
+        JButton showButton = new JButton("Show Feedback");
+
+        panel.add(userLabel);
+        panel.add(userField);
+        panel.add(movieLabel);
+        panel.add(movieField);
+        panel.add(ratingLabel);
+        panel.add(ratingField);
+        panel.add(commentsLabel);
+        panel.add(commentsField);
+        panel.add(submitButton);
+        panel.add(showButton);
+
+        frame.add(panel);
+        frame.setVisible(true);
+
+        submitButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String userName = userField.getText();
+                String movieName = movieField.getText();
+                int rating;
+                try {
+                    rating = Integer.parseInt(ratingField.getText());
+                    if (rating < 1 || rating > 5) {
+                        throw new NumberFormatException();
+                    }
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(frame, "Please enter a valid rating between 1 and 5.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                String comments = commentsField.getText();
+
+                Feedback feedback = new Feedback(userName, movieName, rating, comments);
+                feedbackList.add(feedback);
+
+                userField.setText("");
+                movieField.setText("");
+                ratingField.setText("");
+                commentsField.setText("");
+
+                JOptionPane.showMessageDialog(frame, "Feedback submitted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+
+        showButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (feedbackList.isEmpty()) {
+                    JOptionPane.showMessageDialog(frame, "No feedback available.", "Info", JOptionPane.INFORMATION_MESSAGE);
+                    return;
+                }
+
+                StringBuilder feedbackDetails = new StringBuilder();
+                int totalRating = 0;
+
+                for (Feedback feedback : feedbackList) {
+                    feedbackDetails.append(feedback).append("\n");
+                    totalRating += feedback.getRating();
+                }
+
+                double averageRating = (double) totalRating / feedbackList.size();
+                feedbackDetails.append("\nAverage Rating: ").append(String.format("%.2f", averageRating));
+
+                JTextArea textArea = new JTextArea(feedbackDetails.toString());
+                textArea.setEditable(false);
+                JScrollPane scrollPane = new JScrollPane(textArea);
+                scrollPane.setPreferredSize(new Dimension(350, 200));
+
+                JOptionPane.showMessageDialog(frame, scrollPane, "Feedback Details", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+    }
+
+    public static void main(String[] args) {
+        FeedbackApp app = new FeedbackApp();
+        app.displayUI();
+    }
+}
